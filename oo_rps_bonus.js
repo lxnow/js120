@@ -9,6 +9,21 @@ const shortcutChoices = {
 };
 let moves = {};
 let counter = 0;
+let probBase = {
+  rock: 20,
+  paper: 20,
+  scissors: 20,
+  spock: 20,
+  lizard: 20,
+};
+const PROB_ADD = 10;
+let probTiers = {
+  rock: 20,
+  paper: 20,
+  scissors: 20,
+  spock: 20,
+  lizard: 20,
+};
 
 const RPSGame = {
   human: createHuman(),
@@ -88,11 +103,9 @@ function createComputer() {
 
   let computerObject = {
     choose() {
-      const choices = ['rock', 'scissors', 'paper', 'spock', 'lizard'];
-      let randomIndex = Math.floor(Math.random() * choices.length);
-      this.move = choices[randomIndex];
-      counter++;
-      moves[counter] = this.name + ' - ' + this.move;
+      let choice = Math.random();
+      this.move = smarterChoice(choice);
+      logMove(this);
     }
   };
   return Object.assign(playerObject, computerObject);
@@ -114,8 +127,8 @@ function createHuman() {
       }
       if (shortcutChoices[choice]) this.move = shortcutChoices[choice];
       else this.move = choice;
-      counter++;
-      moves[counter] = this.name + ' - ' + this.move;
+      logMove(this);
+      rebaseProbabilities(this.move);
     },
   };
   return Object.assign(playerObject, humanObject);
@@ -136,6 +149,58 @@ function displayHistory() {
     console.log(`Turn ${move}: ${moves[move]}`);
   }
   console.log('\x1b[0m');
+}
+
+function logMove(obj) {
+  counter++;
+  moves[counter] = obj.name + ' - ' + obj.move;
+}
+
+function rebaseProbabilities(choice) {
+  increaseWeights(choice);
+  let sum = Object.values(probBase).reduce((a, b) => a + b);
+  let prevSum = 0;
+  for (let move in probTiers) {
+    probTiers[move] = (probBase[move] / sum) + prevSum;
+    prevSum = probTiers[move];
+  }
+}
+
+function increaseWeights(choice) {
+  switch (choice) {
+    case 'rock':
+      probBase['paper'] += PROB_ADD;
+      probBase['spock'] += PROB_ADD;
+      break;
+    case 'paper':
+      probBase['lizard'] += PROB_ADD;
+      probBase['scissors'] += PROB_ADD;
+      break;
+    case 'scissors':
+      probBase['rock'] += PROB_ADD;
+      probBase['spock'] += PROB_ADD;
+      break;
+    case 'spock':
+      probBase['lizard'] += PROB_ADD;
+      probBase['paper'] += PROB_ADD;
+      break;
+    case 'lizard':
+      probBase['rock'] += PROB_ADD;
+      probBase['scissors'] += PROB_ADD;
+      break;
+  }
+}
+
+function smarterChoice(choiceNumber) {
+  let finalChoice;
+  let prevMoveValue = 0;
+  for (let move in probTiers) {
+    if (choiceNumber > prevMoveValue && choiceNumber <= probTiers[move]) {
+      finalChoice = move;
+    }
+    prevMoveValue = probTiers[move];
+  }
+  return finalChoice;
 }
 
 RPSGame.play();
