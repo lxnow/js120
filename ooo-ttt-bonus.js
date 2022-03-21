@@ -224,16 +224,35 @@ class TTTGame {
     }
 
     this.board.markSquareAt(choice, this.human.getMarker());
-
   }
 
   computerMoves() {
     let validChoices = this.board.unusedSquares();
-    let choice;
+    let choice = null;
+    let threatRows = [];
+    const PWR = TTTGame.POSSIBLE_WINNING_ROWS; // for brevity
 
-    do {
-      choice = Math.floor((9 * Math.random()) + 1).toString();
-    } while (!validChoices.includes(choice));
+
+    // Bonus question 3
+    for (let counter = 0; counter < PWR.length; counter++) {
+      let evalRow = PWR[counter];
+      if (this.board.countMarkersFor(this.human, evalRow) === 2) {
+        let possibleChoiceIdx = evalRow.findIndex(element => 
+          this.board.squares[element].isUnused());
+        if (possibleChoiceIdx > -1) choice = evalRow[possibleChoiceIdx];
+        // for (let subCounter = 0; subCounter < PWR[counter].length; subCounter++) {
+        //   if (this.board.squares[PWR[counter][subCounter]].isUnused()) {
+        //     choice = PWR[counter][subCounter]
+        //   }
+        // }
+      }
+    }
+
+    if (!choice) {
+        do {
+          choice = Math.floor((9 * Math.random()) + 1).toString();
+        } while (!validChoices.includes(choice));
+    }
 
     this.board.markSquareAt(choice, this.computer.getMarker());
   }
@@ -249,4 +268,4 @@ class TTTGame {
 }
 
 let game = new TTTGame();
-game.firstPlay(); // Bonus question 2 - invoked firstPlay instead
+game.firstPlay(); // Bonus question 2 - invoked firstPlay instead of regular play
