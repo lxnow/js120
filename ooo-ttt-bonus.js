@@ -232,28 +232,57 @@ class TTTGame {
     let threatRows = [];
     const PWR = TTTGame.POSSIBLE_WINNING_ROWS; // for brevity
 
+    // Bonus question 4
+    // let offenseCheck = function () {
+    //   for (let counter = 0; counter < PWR.length; counter++) {
+    //     let evalRow = PWR[counter];
+    //     if (this.board.countMarkersFor(this.computer, evalRow) === 2) {
+    //       let possibleChoiceIdx = evalRow.findIndex(element => 
+    //         this.board.squares[element].isUnused());
+    //       if (possibleChoiceIdx > -1) choice = evalRow[possibleChoiceIdx];
+    //     }
+    //   }
+    //   return choice;
+    // }
 
     // Bonus question 3
-    for (let counter = 0; counter < PWR.length; counter++) {
-      let evalRow = PWR[counter];
-      if (this.board.countMarkersFor(this.human, evalRow) === 2) {
-        let possibleChoiceIdx = evalRow.findIndex(element => 
-          this.board.squares[element].isUnused());
-        if (possibleChoiceIdx > -1) choice = evalRow[possibleChoiceIdx];
-        // for (let subCounter = 0; subCounter < PWR[counter].length; subCounter++) {
-        //   if (this.board.squares[PWR[counter][subCounter]].isUnused()) {
-        //     choice = PWR[counter][subCounter]
-        //   }
-        // }
+    // let defenseCheck = function() {
+    //   for (let counter = 0; counter < PWR.length; counter++) {
+    //     let evalRow = PWR[counter];
+    //     if (this.board.countMarkersFor(this.human, evalRow) === 2) {
+    //       let possibleChoiceIdx = evalRow.findIndex(element => 
+    //         this.board.squares[element].isUnused());
+    //       if (possibleChoiceIdx > -1) choice = evalRow[possibleChoiceIdx];
+    //     }
+    //   }
+    //   return choice;
+    // }
+
+    let smartCheck = function(player) {
+      for (let counter = 0; counter < PWR.length; counter++) {
+        console.log(player)
+        let evalRow = PWR[counter];
+        if (this.board.countMarkersFor(player, evalRow) === 2) {
+          let possibleChoiceIdx = evalRow.findIndex(element => 
+            this.board.squares[element].isUnused());
+          if (possibleChoiceIdx > -1) choice = evalRow[possibleChoiceIdx];
+        }
       }
+      return choice;
     }
 
-    if (!choice) {
-        do {
-          choice = Math.floor((9 * Math.random()) + 1).toString();
-        } while (!validChoices.includes(choice));
+    let randomMove = function() {
+      do {
+        choice = Math.floor((9 * Math.random()) + 1).toString();
+      } while (!validChoices.includes(choice));
+      return choice;
     }
 
+    // choice = offenseCheck.call(this);
+    choice = smartCheck.call(this, this.computer);
+    // if (choice === null) choice = defenseCheck.call(this);
+    if (choice === null) choice = smartCheck.call(this, this.human);
+    if (choice === null) choice = randomMove();
     this.board.markSquareAt(choice, this.computer.getMarker());
   }
 
