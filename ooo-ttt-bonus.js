@@ -47,9 +47,6 @@ class Square {
 class Board {
   constructor() {
     this.squares = {};
-    // for (let counter = 1; counter <= 9; counter++) {
-    //   this.squares[String(counter)] = new Square();
-    // }
     this.init();
   }
 
@@ -106,10 +103,15 @@ class Board {
 class Player {
   constructor(marker) {
     this.marker = marker;
+    this.score = 0;
   }
 
   getMarker() {
     return this.marker;
+  }
+
+  addPoint() {
+    this.score += 1;
   }
 }
 
@@ -125,17 +127,17 @@ class Computer extends Player {
   }
 }
 
-class Score {
-  constructor(player) { // what's the purpose of including a player property though?
-    this.player = player;
-    this.score = 0;
-  }
+// class Score {
+//   constructor(player) { // what's the purpose of including a player property though?
+//     this.player = player;
+//     this.score = 0;
+//   }
 
-  addPoint() {
-    this.score += 1;
-  }
+//   addPoint() {
+//     this.score += 1;
+//   }
 
-}
+// }
 
 class TTTGame {
   static MATCHES_TO_WIN = 3;
@@ -154,8 +156,8 @@ class TTTGame {
     this.board = new Board();
     this.human = new Human();
     this.computer = new Computer();
-    this.humanScore = new Score(this.human);
-    this.computerScore = new Score(this.computer);
+    // this.humanScore = new Score(this.human);
+    // this.computerScore = new Score(this.computer);
   }
   // Bonus question 2 below until method `playAgain()`. Two new methods, one for
   // the first game, which shows a welcome message, and a `nextPlay` method for
@@ -226,13 +228,13 @@ class TTTGame {
   }  
 
   displayScore() {
-    console.log(`You: ${this.humanScore.score}`);
-    console.log(`Computer: ${this.computerScore.score}`);
+    console.log(`You: ${this.human.score}`);
+    console.log(`Computer: ${this.computer.score}`);
   }
 
   addPoint() {
-    if (this.isWinner(this.human)) this.humanScore.addPoint();
-    else if (this.isWinner(this.computer)) this.computerScore.addPoint();
+    if (this.isWinner(this.human)) this.human.addPoint();
+    else if (this.isWinner(this.computer)) this.computer.addPoint();
   }
 
   isWinner(player) {
@@ -311,11 +313,11 @@ class TTTGame {
   }
 
   checkMatchEnd() {
-    if (this.humanScore.score === TTTGame.MATCHES_TO_WIN) {
+    if (this.human.score === TTTGame.MATCHES_TO_WIN) {
       console.log('You win the match!');
       return true;
     }
-    else if (this.computerScore.score === TTTGame.MATCHES_TO_WIN) {
+    else if (this.computer.score === TTTGame.MATCHES_TO_WIN) {
       console.log('I win the match! Hooray for AI!');
       return true;
     } else {
