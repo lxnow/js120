@@ -47,6 +47,13 @@ class Square {
 class Board {
   constructor() {
     this.squares = {};
+    // for (let counter = 1; counter <= 9; counter++) {
+    //   this.squares[String(counter)] = new Square();
+    // }
+    this.init();
+  }
+
+  init() {
     for (let counter = 1; counter <= 9; counter++) {
       this.squares[String(counter)] = new Square();
     }
@@ -118,8 +125,20 @@ class Computer extends Player {
   }
 }
 
-class TTTGame {
+class Score {
+  constructor(player) { // what's the purpose of including a player property though?
+    this.player = player;
+    this.score = 0;
+  }
 
+  addPoint() {
+    this.score += 1;
+  }
+
+}
+
+class TTTGame {
+  static MATCHES_TO_WIN = 3;
   static POSSIBLE_WINNING_ROWS = [
     [ "1", "2", "3" ],            // top row of board
     [ "4", "5", "6" ],            // center row of board
@@ -135,13 +154,14 @@ class TTTGame {
     this.board = new Board();
     this.human = new Human();
     this.computer = new Computer();
+    this.humanScore = new Score(this.human);
+    this.computerScore = new Score(this.computer);
   }
   // Bonus question 2 below until method `playAgain()`. Two new methods, one for
   // the first game, which shows a welcome message, and a `nextPlay` method for
   // any subsequent games. Both methods call the modified `play` method which
   // goes through the same logic as before, except it adds a `playAgain` 
-  // question in the end. If user selects 'y', then we re-instantiate a new game
-  // object (same object name, but it would be at local scope level I think)
+  // question in the end. If user selects 'y', we init() the board
   firstPlay() {
     this.displayWelcomeMessage();
     this.board.display();
@@ -149,11 +169,13 @@ class TTTGame {
   }
 
   nextPlay() {
+    this.board.init();
     this.board.displayWithClear();
     this.play();
   }
 
   play() {
+    this.displayScore();
     while (true) {
       this.humanMoves();
       if (this.gameOver()) break;
@@ -165,11 +187,11 @@ class TTTGame {
     }
 
     this.board.displayWithClear();
+    this.addPoint();
     this.displayResults();
-    if (this.playAgain() === 0) this.displayGoodbyeMessage();
+    if (this.checkMatchEnd() || this.playAgain() === 0) this.displayGoodbyeMessage();
     else {
-      let game = new TTTGame();
-      game.nextPlay();
+      this.nextPlay();
     }
   }
 
@@ -201,6 +223,16 @@ class TTTGame {
     } else {
       console.log("A tie game. How boring.");
     }
+  }  
+
+  displayScore() {
+    console.log(`You: ${this.humanScore.score}`);
+    console.log(`Computer: ${this.computerScore.score}`);
+  }
+
+  addPoint() {
+    if (this.isWinner(this.human)) this.humanScore.addPoint();
+    else if (this.isWinner(this.computer)) this.computerScore.addPoint();
   }
 
   isWinner(player) {
@@ -227,63 +259,47 @@ class TTTGame {
   }
 
   computerMoves() {
-    let validChoices = this.board.unusedSquares();
     let choice = null;
-    let threatRows = [];
     const PWR = TTTGame.POSSIBLE_WINNING_ROWS; // for brevity
 
-    // Bonus question 4
-    // let offenseCheck = function () {
-    //   for (let counter = 0; counter < PWR.length; counter++) {
-    //     let evalRow = PWR[counter];
-    //     if (this.board.countMarkersFor(this.computer, evalRow) === 2) {
-    //       let possibleChoiceIdx = evalRow.findIndex(element => 
-    //         this.board.squares[element].isUnused());
-    //       if (possibleChoiceIdx > -1) choice = evalRow[possibleChoiceIdx];
-    //     }
-    //   }
-    //   return choice;
-    // }
+    choice = this.smartCheck(this.computer, PWR);
+    if (choice === null) choice = this.smartCheck(this.human, PWR);
+    if (choice === null) choice = this.pickCenter();
+    if (choice === null) choice = this.randomMove();
 
-    // Bonus question 3
-    // let defenseCheck = function() {
-    //   for (let counter = 0; counter < PWR.length; counter++) {
-    //     let evalRow = PWR[counter];
-    //     if (this.board.countMarkersFor(this.human, evalRow) === 2) {
-    //       let possibleChoiceIdx = evalRow.findIndex(element => 
-    //         this.board.squares[element].isUnused());
-    //       if (possibleChoiceIdx > -1) choice = evalRow[possibleChoiceIdx];
-    //     }
-    //   }
-    //   return choice;
-    // }
-
-    let smartCheck = function(player) {
-      for (let counter = 0; counter < PWR.length; counter++) {
-        console.log(player)
-        let evalRow = PWR[counter];
-        if (this.board.countMarkersFor(player, evalRow) === 2) {
-          let possibleChoiceIdx = evalRow.findIndex(element => 
-            this.board.squares[element].isUnused());
-          if (possibleChoiceIdx > -1) choice = evalRow[possibleChoiceIdx];
-        }
-      }
-      return choice;
-    }
-
-    let randomMove = function() {
-      do {
-        choice = Math.floor((9 * Math.random()) + 1).toString();
-      } while (!validChoices.includes(choice));
-      return choice;
-    }
-
-    // choice = offenseCheck.call(this);
-    choice = smartCheck.call(this, this.computer);
-    // if (choice === null) choice = defenseCheck.call(this);
-    if (choice === null) choice = smartCheck.call(this, this.human);
-    if (choice === null) choice = randomMove();
     this.board.markSquareAt(choice, this.computer.getMarker());
+  }
+
+  randomMove() {
+    let choice = null;
+    let validChoices = this.board.unusedSquares();
+    do {
+      choice = Math.floor((9 * Math.random()) + 1).toString();
+    } while (!validChoices.includes(choice));
+    return choice;
+  }
+
+  // while the tutorial step 6 advises to separate out the at risk squares / 
+  // winning squares, I find that "smartCheck" is a sufficient method 
+  // to run when evaluating the next best move for the computer, since the logic
+  // is exactly the same. The logic doesn't know if it's blocking or winning, only
+  // that it is looking for an optimal empty square to go through. Would love to
+  // get TA feedback on this point. 
+  smartCheck(playerToCheck, PWR) {
+    let choice = null;
+    for (let counter = 0; counter < PWR.length; counter++) {
+      let evalRow = PWR[counter];
+      if (this.board.countMarkersFor(playerToCheck, evalRow) === 2) {
+        let possibleChoiceIdx = evalRow.findIndex(element => 
+          this.board.squares[element].isUnused());
+        if (possibleChoiceIdx > -1) choice = evalRow[possibleChoiceIdx];
+      }
+    }
+    return choice;
+  }
+
+  pickCenter() {
+    return (this.board.squares['5'].isUnused()) ? '5' : null;
   }
 
   gameOver() {
@@ -292,6 +308,19 @@ class TTTGame {
 
   someoneWon() {
     return this.isWinner(this.human) || this.isWinner(this.computer);
+  }
+
+  checkMatchEnd() {
+    if (this.humanScore.score === TTTGame.MATCHES_TO_WIN) {
+      console.log('You win the match!');
+      return true;
+    }
+    else if (this.computerScore.score === TTTGame.MATCHES_TO_WIN) {
+      console.log('I win the match! Hooray for AI!');
+      return true;
+    } else {
+      return false;
+    }
   }
 
 }
