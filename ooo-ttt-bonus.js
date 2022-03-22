@@ -1,25 +1,24 @@
 let readline = require('readline-sync');
 
-// Bonus question 1. Added a custom function to the built-in Array object. 
-// I read that this is not necessarily best practice, though using 
-// `Object.defineProperty`` helps mitigate the mutability and enumerability 
+// Bonus question 1. Added a custom function to the built-in Array object.
+// I read that this is not necessarily best practice, though using
+// `Object.defineProperty`` helps mitigate the mutability and enumerability
 // issues related to this. Would like to get additional feedback on that.
 Object.defineProperty(Array.prototype, 'joinOr', 
   {value: function(delimiter = ', ', finalDelimiter = 'or') {
-  if (this.length === 1) return this.toString();
-  else if (this.length === 2) return this[0] + ' ' + finalDelimiter + ' ' + this[1];
-  else {
-    let stringResult = '';
-    for (let counter = 0; counter < this.length - 1; counter++ ){
-      stringResult = stringResult + this[counter] + delimiter;
-    } 
-    stringResult = stringResult +  finalDelimiter + ' ' + this[this.length - 1];
-    return stringResult;
-  }
-}});
+    if (this.length === 1) return this.toString();
+    else if (this.length === 2) return this[0] + ' ' + finalDelimiter + ' ' + this[1];
+    else {
+      let stringResult = '';
+      for (let counter = 0; counter < this.length - 1; counter++ ) {
+        stringResult = stringResult + this[counter] + delimiter;
+      }
+      stringResult = stringResult +  finalDelimiter + ' ' + this[this.length - 1];
+      return stringResult;
+    }
+  }});
 
 class Square {
-  // static UNUSED_SQUARE = " ";
   static HUMAN_MARKER = "X";
   static COMPUTER_MARKER = "O";
 
@@ -39,8 +38,8 @@ class Square {
   }
 
   isUnused() {
-    // return this.marker === Square.UNUSED_SQUARE;
-    return (this.marker !== Square.HUMAN_MARKER && this.marker !== Square.COMPUTER_MARKER);
+    return (this.marker !== Square.HUMAN_MARKER
+      && this.marker !== Square.COMPUTER_MARKER);
   }
 
 }
@@ -153,7 +152,7 @@ class TTTGame {
   // Bonus question 2 below until method `playAgain()`. Two new methods, one for
   // the first game, which shows a welcome message, and a `nextPlay` method for
   // any subsequent games. Both methods call the modified `play` method which
-  // goes through the same logic as before, except it adds a `playAgain` 
+  // goes through the same logic as before, except it adds a `playAgain`
   // question in the end. If user selects 'y', we init() the board
   firstPlay() {
     this.displayWelcomeMessage();
@@ -182,7 +181,7 @@ class TTTGame {
     this.board.displayWithClear();
     this.addPoint();
     this.displayResults();
-    if (this.checkMatchEnd() || this.playAgain() === 0) this.displayGoodbyeMessage();
+    if (this.checkMatchEnd() || this.playAgain() === 0) this.displayByeMsg();
     else {
       this.nextPlay();
     }
@@ -211,11 +210,11 @@ class TTTGame {
   displayWelcomeMessage() {
     console.clear();
     console.log("\x1b[1m\x1b[93mWelcome to Tic Tac Toe!\x1b[0m");
-    console.log(`First to ${TTTGame.MATCHES_TO_WIN} wins the match.`)
+    console.log(`First to ${TTTGame.MATCHES_TO_WIN} wins the match.`);
     console.log("");
   }
 
-  displayGoodbyeMessage() {
+  displayByeMsg() {
     console.log("Thanks for playing Tic Tac Toe! Goodbye!");
   }
 
@@ -227,7 +226,7 @@ class TTTGame {
     } else {
       console.log("A tie game. How boring.");
     }
-  }  
+  }
 
   displayScore() {
     console.log(`You: \x1b[33m${this.human.score}\x1b[0m`);
@@ -283,18 +282,18 @@ class TTTGame {
     return choice;
   }
 
-  // while the tutorial step 6 advises to separate out the at risk squares / 
-  // winning squares, I find that "smartCheck" is a sufficient method 
+  // while the tutorial step 6 advises to separate out the at risk squares /
+  // winning squares, I find that "smartCheck" is a sufficient method
   // to run when evaluating the next best move for the computer, since the logic
-  // is exactly the same. The logic doesn't know if it's blocking or winning, only
+  // is exactly the same. The logic doesn't know if blocking or winning, only
   // that it is looking for an optimal empty square to go through. Would love to
-  // get TA feedback on this point. 
+  // get TA feedback on this point.
   smartCheck(playerToCheck, PWR) {
     let choice = null;
     for (let counter = 0; counter < PWR.length; counter++) {
       let evalRow = PWR[counter];
       if (this.board.countMarkersFor(playerToCheck, evalRow) === 2) {
-        let possibleChoiceIdx = evalRow.findIndex(element => 
+        let possibleChoiceIdx = evalRow.findIndex(element =>
           this.board.squares[element].isUnused());
         if (possibleChoiceIdx > -1) choice = evalRow[possibleChoiceIdx];
       }
@@ -316,20 +315,19 @@ class TTTGame {
 
   checkMatchEnd() {
     if (this.human.score === TTTGame.MATCHES_TO_WIN) {
-      this.printMatchWinner('human');
+      this.printMatchWinner(this.human);
       return true;
-    }
-    else if (this.computer.score === TTTGame.MATCHES_TO_WIN) {
-      this.printMatchWinner('computer');
+    } else if (this.computer.score === TTTGame.MATCHES_TO_WIN) {
+      this.printMatchWinner(this.computer);
       return true;
     } else {
       return false;
     }
   }
 
-  printMatchWinner(player){
-    if (player ==='human') console.log('You win the match!');
-    else if (player === 'computer') console.log('I win the match! Hooray for AI!');
+  printMatchWinner(player) {
+    if (player === this.human) console.log('You win the match!');
+    else if (player === this.computer) console.log('I win the match! Hooray for AI!');
   }
 
 }
