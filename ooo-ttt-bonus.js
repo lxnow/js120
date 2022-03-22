@@ -19,12 +19,12 @@ Object.defineProperty(Array.prototype, 'joinOr',
 }});
 
 class Square {
-  static UNUSED_SQUARE = " ";
+  // static UNUSED_SQUARE = " ";
   static HUMAN_MARKER = "X";
   static COMPUTER_MARKER = "O";
 
-  constructor(marker = Square.UNUSED_SQUARE) {
-    this.marker = marker;
+  constructor(marker) {
+    this.marker = `\x1b[30m${marker}\x1b[0m`;
   }
   toString() {
     return this.marker;
@@ -39,7 +39,8 @@ class Square {
   }
 
   isUnused() {
-    return this.marker === Square.UNUSED_SQUARE;
+    // return this.marker === Square.UNUSED_SQUARE;
+    return (this.marker !== Square.HUMAN_MARKER && this.marker !== Square.COMPUTER_MARKER);
   }
 
 }
@@ -52,7 +53,7 @@ class Board {
 
   init() {
     for (let counter = 1; counter <= 9; counter++) {
-      this.squares[String(counter)] = new Square();
+      this.squares[String(counter)] = new Square(counter);
     }
   }
 
@@ -78,6 +79,7 @@ class Board {
 
   displayWithClear() {
     console.clear();
+    console.log("");
     console.log("");
     console.log("");
     this.display();
@@ -127,37 +129,26 @@ class Computer extends Player {
   }
 }
 
-// class Score {
-//   constructor(player) { // what's the purpose of including a player property though?
-//     this.player = player;
-//     this.score = 0;
-//   }
-
-//   addPoint() {
-//     this.score += 1;
-//   }
-
-// }
 
 class TTTGame {
   static MATCHES_TO_WIN = 3;
   static POSSIBLE_WINNING_ROWS = [
-    [ "1", "2", "3" ],            // top row of board
-    [ "4", "5", "6" ],            // center row of board
-    [ "7", "8", "9" ],            // bottom row of board
-    [ "1", "4", "7" ],            // left column of board
-    [ "2", "5", "8" ],            // middle column of board
-    [ "3", "6", "9" ],            // right column of board
-    [ "1", "5", "9" ],            // diagonal: top-left to bottom-right
-    [ "3", "5", "7" ],            // diagonal: bottom-left to top-right
+    [ "1", "2", "3" ],
+    [ "4", "5", "6" ],
+    [ "7", "8", "9" ],
+    [ "1", "4", "7" ],
+    [ "2", "5", "8" ],
+    [ "3", "6", "9" ],
+    [ "1", "5", "9" ],
+    [ "3", "5", "7" ],
   ];
 
   constructor() {
     this.board = new Board();
     this.human = new Human();
     this.computer = new Computer();
-    // this.humanScore = new Score(this.human);
-    // this.computerScore = new Score(this.computer);
+    this.firstPlayer = this.human;
+
   }
   // Bonus question 2 below until method `playAgain()`. Two new methods, one for
   // the first game, which shows a welcome message, and a `nextPlay` method for
@@ -167,27 +158,27 @@ class TTTGame {
   firstPlay() {
     this.displayWelcomeMessage();
     this.board.display();
+    this.displayScore();
     this.play();
   }
 
   nextPlay() {
     this.board.init();
+    this.firstPlayer = this.togglePlayer(this.firstPlayer);
     this.board.displayWithClear();
+    this.displayScore();
     this.play();
   }
 
   play() {
-    this.displayScore();
+    let currentPlayer = this.firstPlayer;
     while (true) {
-      this.humanMoves();
+      this.playerMoves(currentPlayer);
       if (this.gameOver()) break;
-
-      this.computerMoves();
-      if (this.gameOver()) break;
-
       this.board.displayWithClear();
+      this.displayScore();
+      currentPlayer = this.togglePlayer(currentPlayer);
     }
-
     this.board.displayWithClear();
     this.addPoint();
     this.displayResults();
@@ -197,10 +188,20 @@ class TTTGame {
     }
   }
 
+  togglePlayer(player) {
+    if (player === this.human) return this.computer;
+    else return this.human;
+  }
+
+  playerMoves(player) {
+    if (player === this.human) this.humanMoves();
+    else this.computerMoves();
+  }
+
   playAgain() {
     let choice;
     while (!['y', 'n'].includes(choice)) {
-      let prompt = `Would you like to play again? (y/n): `;
+      let prompt = `Would you like to play again? (\x1b[1my\x1b[0m/\x1b[1mn\x1b[0m]): `;
       choice = readline.question(prompt).toLowerCase();
     }
     if (choice === 'y') return 1;
@@ -209,7 +210,8 @@ class TTTGame {
 
   displayWelcomeMessage() {
     console.clear();
-    console.log("Welcome to Tic Tac Toe!");
+    console.log("\x1b[1m\x1b[93mWelcome to Tic Tac Toe!\x1b[0m");
+    console.log(`First to ${TTTGame.MATCHES_TO_WIN} wins the match.`)
     console.log("");
   }
 
@@ -228,8 +230,8 @@ class TTTGame {
   }  
 
   displayScore() {
-    console.log(`You: ${this.human.score}`);
-    console.log(`Computer: ${this.computer.score}`);
+    console.log(`You: \x1b[33m${this.human.score}\x1b[0m`);
+    console.log(`Computer: \x1b[33m${this.computer.score}\x1b[0m`);
   }
 
   addPoint() {
@@ -314,15 +316,20 @@ class TTTGame {
 
   checkMatchEnd() {
     if (this.human.score === TTTGame.MATCHES_TO_WIN) {
-      console.log('You win the match!');
+      this.printMatchWinner('human');
       return true;
     }
     else if (this.computer.score === TTTGame.MATCHES_TO_WIN) {
-      console.log('I win the match! Hooray for AI!');
+      this.printMatchWinner('computer');
       return true;
     } else {
       return false;
     }
+  }
+
+  printMatchWinner(player){
+    if (player ==='human') console.log('You win the match!');
+    else if (player === 'computer') console.log('I win the match! Hooray for AI!');
   }
 
 }
