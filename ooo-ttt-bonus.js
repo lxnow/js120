@@ -1,23 +1,5 @@
 let readline = require('readline-sync');
 
-// Bonus question 1. Added a custom function to the built-in Array object.
-// I read that this is not necessarily best practice, though using
-// `Object.defineProperty`` helps mitigate the mutability and enumerability
-// issues related to this. Would like to get additional feedback on that.
-Object.defineProperty(Array.prototype, 'joinOr', 
-  {value: function(delimiter = ', ', finalDelimiter = 'or') {
-    if (this.length === 1) return this.toString();
-    else if (this.length === 2) return this[0] + ' ' + finalDelimiter + ' ' + this[1];
-    else {
-      let stringResult = '';
-      for (let counter = 0; counter < this.length - 1; counter++ ) {
-        stringResult = stringResult + this[counter] + delimiter;
-      }
-      stringResult = stringResult +  finalDelimiter + ' ' + this[this.length - 1];
-      return stringResult;
-    }
-  }});
-
 class Square {
   static HUMAN_MARKER = "X";
   static COMPUTER_MARKER = "O";
@@ -199,11 +181,11 @@ class TTTGame {
 
   playAgain() {
     let choice;
-    while (!['y', 'n'].includes(choice)) {
+    while (!['y', 'n', 'yes', 'no'].includes(choice)) {
       let prompt = `Would you like to play again? (\x1b[1my\x1b[0m/\x1b[1mn\x1b[0m]): `;
       choice = readline.question(prompt).toLowerCase();
     }
-    if (choice === 'y') return 1;
+    if (choice[0] === 'y') return 1;
     else return 0;
   }
 
@@ -249,7 +231,7 @@ class TTTGame {
 
     while (true) {
       let validChoices = this.board.unusedSquares();
-      const prompt = `Choose a square (${validChoices.joinOr(", ", "and")}): `;
+      const prompt = `Choose a square (${this.joinOr(validChoices, ", ", "and")}): `;
       choice = readline.question(prompt);
 
       if (validChoices.includes(choice)) break;
@@ -259,6 +241,21 @@ class TTTGame {
     }
 
     this.board.markSquareAt(choice, this.human.getMarker());
+  }
+
+  joinOr(choicesArr, delimiter = ', ', finalDelimiter = 'or') {
+    if (choicesArr.length === 1) return choicesArr.toString();
+    else if (choicesArr.length === 2) return choicesArr[0] + ' ' +
+      finalDelimiter + ' ' + choicesArr[1];
+    else {
+      let stringResult = '';
+      for (let counter = 0; counter < choicesArr.length - 1; counter++ ) {
+        stringResult = stringResult + choicesArr[counter] + delimiter;
+      }
+      stringResult = stringResult +  finalDelimiter + ' ' +
+      choicesArr[choicesArr.length - 1];
+      return stringResult;
+    }
   }
 
   computerMoves() {
