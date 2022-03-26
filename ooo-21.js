@@ -290,7 +290,7 @@ class TwentyOneGame {
     let playerMove;
     while (true) {
       playerMove = readline.question(`Do you \x1b[1m(h)\x1b[0mit or \x1b[1m(s)\x1b[0mtay? `).toLowerCase();
-      if (playerMove === 'h' || playerMove === 'hit' || playerMove === 's' || playerMove === 'stay') return playerMove;
+      if (['h', 'hit', 's', 'stay'].includes(playerMove)) return playerMove;
       console.log('Not a valid move, please try again (enter "\x1b[1mh\x1b[0m" or "\x1b[1ms\x1b[0m")');
     }
   }
@@ -301,10 +301,15 @@ class TwentyOneGame {
       if (this.dealer.getBestValue() < Dealer.HIT_THRESHOLD) {
         this.dealer.hit(this, this.cardsInPlay());
         this.displayDealerHand();
+        this.dealerContinue();
       } else break;
     }
     if (this.dealer.isBusted()) return;
     else this.dealer.stay(this);
+  }
+
+  dealerContinue() {
+    readline.question("Press Return to continue...");
   }
 
   cardsInPlay() {
@@ -365,13 +370,13 @@ class TwentyOneGame {
 
   playAgain() {
     let answer;
-    while (answer !== 'y' && answer !== 'n' && answer !== 'yes' && answer !== 'no') {
+    while (!['y', 'yes', 'n', 'no'].includes(answer)) {
       answer = readline.question('Would you like to play again? (\x1b[1my\x1b[0m)es or (\x1b[1mn\x1b[0mo): ');
       answer = answer.toLowerCase();
-      if (answer !== 'y' && answer !== 'n' && answer !== 'yes' && answer !== 'no') console.log("Invalid response. Let's try that again.");
+      if (!['y', 'yes', 'n', 'no'].includes(answer)) console.log("Invalid response. Let's try that again.");
     }
-    if (answer === 'y' || answer === 'yes') return true;
-    else if (answer === 'n' || answer === 'no') return false;
+    if (['y', 'yes'].includes(answer)) return true;
+    else if (['n', 'no'].includes(answer)) return false;
     return true;
   }
 
