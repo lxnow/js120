@@ -30,8 +30,7 @@ class Card {
 }
 
 class Deck {
-  // static CARDS_IN_DECK = 52; // we are only using one deck;
-  // static CARDS_DEALT = 2;
+  static MIN_NUM_OF_CARDS_IN_DECK = 5;
 
   constructor() {
     this.cards = []; //array of card objects; QUESTION: why does the array
@@ -48,7 +47,7 @@ class Deck {
   }
 
   deal(participant, cardsInPlay) {
-    if (this.cardCount < TwentyOneGame.MIN_NUM_OF_CARDS_IN_DECK) {
+    if (this.cardCount < Deck.MIN_NUM_OF_CARDS_IN_DECK) {
       this.shuffleDeck(cardsInPlay);
     }
 
@@ -210,7 +209,6 @@ class Dealer extends Participant {
 }
 
 class TwentyOneGame {
-  static MIN_NUM_OF_CARDS_IN_DECK = 5;
   static WINNING_MONEY = 10;
   static BUST_THRESHOLD = 21;
 
@@ -245,7 +243,7 @@ class TwentyOneGame {
   }
 
   dealCards() {
-    if (this.deck.cardCount < TwentyOneGame.MIN_NUM_OF_CARDS_IN_DECK) {
+    if (this.deck.cardCount < Deck.MIN_NUM_OF_CARDS_IN_DECK) {
       this.deck.shuffleDeck();
     }
     for (let counter = 0; counter < 2; counter += 1) {
@@ -402,7 +400,7 @@ class TwentyOneGame {
 
   displayAutoEnd() {
     if (this.player.money === Player.AUTOLOSE_BALANCE) {
-      console.log(`You automatically lose. We're ending this game.`);
+      console.log(`We don't have a loan facility. We're ending this game.`);
     } else console.log('You automatically win! Congrats!');
   }
 
